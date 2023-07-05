@@ -1,0 +1,127 @@
+<?php
+
+/**
+ * @file
+ * Hello World module file.
+ */
+
+use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function hello_world_help($route_name, RouteMatchInterface $route_match)
+{
+  switch ($route_name) {
+    case 'help.page.hello_world':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('This is an example module.') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function hello_world_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id)
+{
+  if ($form_id === 'salutation_configuration_form') {
+    // Perform alterations.
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function hello_world_form_salutation_configuration_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id)
+{
+  // Perform alterations
+  $form['#submit'][] = 'hello_world_salutation_configuration_form_submit';
+}
+
+/**
+ * Custom submit handler for the form_salutation_configuration form.
+ *
+ * @param $form
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ */
+function hello_world_salutation_configuration_form_submit(&$form, \Drupal\Core\Form\FormStateInterface $form_state)
+{
+  // Do something when the form is submitted.
+}
+
+/**
+ * Implements hook_mail().
+ */
+function hello_world_mail($key, &$message, $params)
+{
+  switch ($key) {
+    case 'hello_world_log':
+      $message['from'] = \Drupal::config('system.site')->get('mail');
+      $message['subject'] = t('There is an error on your website');
+      $message['body'][] = $params['message'];
+      $user_message = 'The user that was logged in: [current-user:name].';
+      $message['body'][] = \Drupal::token()->replace($user_message, ['current-user' => \Drupal::currentUser()]);
+
+      break;
+  }
+}
+
+/**
+ * Implements hook_mail_alter().
+ * This won't change the content type of the header since the mail plugin is executed after this hook
+ */
+function hello_world_mail_alter(&$message)
+{
+  switch ($message['key']) {
+    case 'hello_world_log':
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8; format=flowed; delsp=yes';
+      break;
+  }
+}
+
+/**
+ * Implements hook_token_info().
+ * More info in the user.tokens.inc file: web/core/modules/user/user.tokens.inc
+ */
+function hello_world_token_info() {
+  $type = [
+    'name' => t('Hello World'),
+    'description' => t('Tokens related to the Hello World module.'),
+  ];
+
+  $tokens['salutation'] = [
+    'name' => t('Salutation'),
+    'description' => t('The Hello World salutation value.'),
+  ];
+
+  return [
+    'types' => ['hello_world' => $type],
+    'tokens' => ['hello_world' => $tokens],
+  ];
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function hello_world_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
+  $replacements = [];
+  if ($type == 'hello_world') {
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+        case 'salutation':
+          $replacements[$original] = \Drupal::service('hello_world.salutation')->getSalutation();
+          $config = \Drupal::config('hello_world.custom_salutation');
+          $bubbleable_metadata->addCacheableDependency($config);
+          break;
+
+      }
+    }
+  }
+
+  return $replacements;
+}
