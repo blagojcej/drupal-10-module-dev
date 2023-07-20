@@ -9,7 +9,8 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 /**
  * Prepares the salutation to the world.
  */
-class HelloWorldSalutation {
+class HelloWorldSalutation
+{
 
   use StringTranslationTrait;
 
@@ -35,7 +36,8 @@ class HelloWorldSalutation {
    * @param \Symfony\Contracts\EventDispatcher\EventDispatcherInterface $eventDispatcher
    *   The event dispatcher.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, EventDispatcherInterface $eventDispatcher) {
+  public function __construct(ConfigFactoryInterface $config_factory, EventDispatcherInterface $eventDispatcher)
+  {
     $this->configFactory = $config_factory;
     $this->eventDispatcher = $eventDispatcher;
   }
@@ -46,7 +48,8 @@ class HelloWorldSalutation {
    * @return string
    *   The salutation message.
    */
-  public function getSalutation() {
+  public function getSalutation()
+  {
     $config = $this->configFactory->get('hello_world.custom_salutation');
     $salutation = $config->get('salutation');
     if ($salutation !== "" && $salutation) {
@@ -70,4 +73,43 @@ class HelloWorldSalutation {
     }
   }
 
+  /**
+   * Returns the Salutation render array.
+   */
+  public function getSalutationComponent()
+  {
+    $render = [
+      '#theme' => 'hello_world_salutation',
+    ];
+
+    $config = $this->configFactory->get('hello_world.custom_salutation');
+    $salutation = $config->get('salutation');
+
+    if ($salutation !== "" && $salutation) {
+      $event = new SalutationEvent();
+      $event->setValue($salutation);
+      $this->eventDispatcher->dispatch($event, SalutationEvent::EVENT);
+      $render['#salutation'] = $event->getValue();
+      $render['#overridden'] = TRUE;
+      return $render;
+    }
+
+    $time = new \DateTime();
+    $render['#target'] = $this->t('world');
+
+    if ((int) $time->format('G') >= 00 && (int) $time->format('G') < 12) {
+      $render['#salutation'] = $this->t('Good morning');
+      return $render;
+    }
+
+    if ((int) $time->format('G') >= 12 && (int) $time->format('G') < 18) {
+      $render['#salutation'] = $this->t('Good afternoon');
+      return $render;
+    }
+
+    if ((int) $time->format('G') >= 18) {
+      $render['#salutation'] = $this->t('Good evening');
+      return $render;
+    }
+  }
 }

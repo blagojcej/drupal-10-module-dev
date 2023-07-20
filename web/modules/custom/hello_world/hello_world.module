@@ -88,7 +88,8 @@ function hello_world_mail_alter(&$message)
  * Implements hook_token_info().
  * More info in the user.tokens.inc file: web/core/modules/user/user.tokens.inc
  */
-function hello_world_token_info() {
+function hello_world_token_info()
+{
   $type = [
     'name' => t('Hello World'),
     'description' => t('Tokens related to the Hello World module.'),
@@ -108,7 +109,8 @@ function hello_world_token_info() {
 /**
  * Implements hook_tokens().
  */
-function hello_world_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
+function hello_world_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata)
+{
   $replacements = [];
   if ($type == 'hello_world') {
     foreach ($tokens as $name => $original) {
@@ -118,10 +120,49 @@ function hello_world_tokens($type, $tokens, array $data, array $options, Bubblea
           $config = \Drupal::config('hello_world.custom_salutation');
           $bubbleable_metadata->addCacheableDependency($config);
           break;
-
       }
     }
   }
 
   return $replacements;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function hello_world_theme($existing, $type, $theme, $path)
+{
+  return [
+    'hello_world_salutation' => [
+      'variables' => [
+        'salutation' => NULL,
+        'target' => NULL,
+        'overridden' => FALSE,
+      ],
+    ],
+  ];
+}
+
+/**
+ * Default preprocessor function for the hello_world_salutation theme hook.
+ */
+function template_preprocess_hello_world_salutation(&$variables)
+{
+  $variables['attributes'] = [
+    'class' => ['salutation'],
+  ];
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK().
+ */
+function hello_world_theme_suggestions_hello_world_salutation($variables)
+{
+  $suggestions = [];
+
+  if ($variables['overridden'] === TRUE) {
+    $suggestions[] = 'hello_world_salutation__overridden';
+  }
+
+  return $suggestions;
 }

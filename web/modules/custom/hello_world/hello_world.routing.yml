@@ -6,6 +6,22 @@ hello_world.hello:
   requirements:
     _permission: 'access content'
 
+hello_world.hello_component:
+  path: '/hello-component'
+  defaults:
+    _controller:  Drupal\hello_world\Controller\HelloWorldController::helloWorldComponent
+    _title: 'Our first component route'
+  requirements:
+    _permission: 'access content'
+
+hello_world.twocolumns:
+  path: '/twocolumns'
+  defaults:
+    _controller:  Drupal\hello_world\Controller\HelloWorldController::twocolumns
+    _title: 'Two Columns Layout'
+  requirements:
+    _permission: 'access content'
+
 hello_world.greeting_form:
   path: '/admin/config/salutation-configuration'
   defaults:
