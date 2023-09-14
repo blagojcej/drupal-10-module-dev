@@ -24,3 +24,8 @@ services:
     arguments: ['@hello_world.logger.channel.hello_world']
     tags:
       - { name: event_subscriber }
+
+  hello_world.config_overrider:
+     class: Drupal\hello_world\HelloWorldConfigOverrides
+     tags:
+       - { name: config.factory.override, priority: 5 }
