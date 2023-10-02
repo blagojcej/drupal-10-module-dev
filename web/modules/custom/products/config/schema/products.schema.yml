@@ -23,3 +23,14 @@ products.importer.*:
    bundle:
      type: string
      label: The product bundle
+
+products.product_type.*:
+  type: config_entity
+  label: 'Product type config'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    label:
+      type: label
+      label: 'Label'
