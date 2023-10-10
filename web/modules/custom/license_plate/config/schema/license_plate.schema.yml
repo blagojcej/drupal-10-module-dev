@@ -32,3 +32,19 @@ field.widget.settings.default_license_plate_widget:
         code:
           type: string
           label: 'The placeholder for the code field'
+
+field.formatter.settings.default_license_plate_formatter:
+  type: mapping
+  label: 'Default license plate formatter settings'
+  mapping:
+    concatenated:
+      type: boolean
+      label: 'Whether to concatenate the two fields into one single span tag'
+
+field.field_settings.license_plate_type:
+  type: mapping
+  label: 'License plate field settings'
+  mapping:
+    codes:
+      type: string
+      label: 'Codes'
