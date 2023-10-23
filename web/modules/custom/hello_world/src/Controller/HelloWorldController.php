@@ -2,6 +2,8 @@
 
 namespace Drupal\hello_world\Controller;
 
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\hello_world\HelloWorldSalutation;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -77,5 +79,19 @@ class HelloWorldController extends ControllerBase
       ],
     ];
     return $layout->build($regions);
+  }
+
+  /**
+   * Handles the access checking.
+   *
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   The user account.
+   *
+   * @return \Drupal\Core\Access\AccessResultInterface
+   *   The access result.
+   */
+  public function access(AccountInterface $account)
+  {
+    return in_array('content_editor', $account->getRoles()) ? AccessResult::forbidden('Editors are not allowed') : AccessResult::allowed();
   }
 }
