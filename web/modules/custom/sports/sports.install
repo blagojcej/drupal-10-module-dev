@@ -32,11 +32,11 @@ function sports_schema()
                 'type' => 'text',
                 'size' => 'normal',
             ],
-            'location' => [
-                'description' => 'The team location.',
-                'type' => 'varchar',
-                'length' => 255,
-            ],
+            // 'location' => [
+            //     'description' => 'The team location.',
+            //     'type' => 'varchar',
+            //     'length' => 255,
+            // ],
         ],
         'primary key' => ['id'],
     ];
