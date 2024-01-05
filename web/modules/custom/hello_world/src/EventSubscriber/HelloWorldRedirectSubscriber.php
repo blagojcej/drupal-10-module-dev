@@ -2,18 +2,20 @@
 
 namespace Drupal\hello_world\EventSubscriber;
 
-use Drupal\Core\Routing\RouteMatchInterface;
-use Drupal\Core\Session\AccountProxyInterface;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Drupal\Core\Routing\LocalRedirectResponse;
-use Symfony\Component\HttpKernel\KernelEvents;
 use Drupal\Core\Url;
+use Drupal\Core\Cache\CacheableMetadata;
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Routing\LocalRedirectResponse;
+use Drupal\Core\Session\AccountProxyInterface;
+use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * Redirects to the homepage when the user has the "non_grata" role.
  */
-class HelloWorldRedirectSubscriber implements EventSubscriberInterface {
+class HelloWorldRedirectSubscriber implements EventSubscriberInterface
+{
 
   /**
    * The current user.
@@ -37,7 +39,8 @@ class HelloWorldRedirectSubscriber implements EventSubscriberInterface {
    * @param \Drupal\Core\Routing\RouteMatchInterface $routeMatch
    *   The current route match.
    */
-  public function __construct(AccountProxyInterface $currentUser, RouteMatchInterface $routeMatch) {
+  public function __construct(AccountProxyInterface $currentUser, RouteMatchInterface $routeMatch)
+  {
     $this->currentUser = $currentUser;
     $this->routeMatch = $routeMatch;
   }
@@ -45,7 +48,8 @@ class HelloWorldRedirectSubscriber implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  public static function getSubscribedEvents() {
+  public static function getSubscribedEvents()
+  {
     $events[KernelEvents::REQUEST][] = ['onRequest', 0];
     return $events;
   }
@@ -56,7 +60,8 @@ class HelloWorldRedirectSubscriber implements EventSubscriberInterface {
    * @param \Symfony\Component\HttpKernel\Event\RequestEvent $event
    *   The request event.
    */
-  public function onRequest(RequestEvent $event) {
+  public function onRequest(RequestEvent $event)
+  {
     $route_name = $this->routeMatch->getRouteName();
 
     if ($route_name !== 'hello_world.hello') {
@@ -66,8 +71,15 @@ class HelloWorldRedirectSubscriber implements EventSubscriberInterface {
     $roles = $this->currentUser->getRoles();
     if (in_array('non_grata', $roles)) {
       $url = Url::fromUri('internal:/');
-      $event->setResponse(new LocalRedirectResponse($url->toString()));
+      // $event->setResponse(new LocalRedirectResponse($url->toString()));
+
+      // After implementing cachable dependencies
+      $response = new LocalRedirectResponse($url->toString());
+      $cache = new CacheableMetadata();
+      $cache->addCacheContexts(['route']);
+      $cache->addCacheContexts(['user.roles']);
+      $response->addCacheableDependency($cache);
+      $event->setResponse($response);
     }
   }
-
 }

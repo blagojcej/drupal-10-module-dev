@@ -54,8 +54,14 @@ class HelloWorldSalutationBlock extends BlockBase implements ContainerFactoryPlu
   public function build()
   {
     $config = $this->getConfiguration();
+    // return [
+    //   '#markup' => $this->salutation->getSalutation(),
+    // ];
+
+    // After implementing cachable dependencies
     return [
-      '#markup' => $this->salutation->getSalutation(),
+      '#lazy_builder' => ['hello_world.lazy_builder:renderSalutation', []],
+      '#create_placeholder' => TRUE,
     ];
   }
 
@@ -70,9 +76,10 @@ class HelloWorldSalutationBlock extends BlockBase implements ContainerFactoryPlu
   }
 
   /**
-    * {@inheritdoc}
-    */
-  public function blockForm($form, FormStateInterface $form_state) {
+   * {@inheritdoc}
+   */
+  public function blockForm($form, FormStateInterface $form_state)
+  {
     $config = $this->getConfiguration();
     $form['enabled'] = array(
       '#type' => 'checkbox',
@@ -84,9 +91,10 @@ class HelloWorldSalutationBlock extends BlockBase implements ContainerFactoryPlu
   }
 
   /**
-    * {@inheritdoc}
-    */
-  public function blockSubmit($form, FormStateInterface $form_state) {
+   * {@inheritdoc}
+   */
+  public function blockSubmit($form, FormStateInterface $form_state)
+  {
     $this->configuration['enabled'] = $form_state->getValue('enabled');
   }
 }
