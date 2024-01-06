@@ -8,8 +8,11 @@ products.importer.*:
    label:
      type: label
      label: 'Label'
-   url:
-     type: uri
+  #  url:
+  #    type: uri
+  #    label: Uri
+   plugin_configuration:
+     type: products.importer.plugin.[%parent.plugin]
      label: Uri
    plugin:
      type: string
@@ -34,3 +37,15 @@ products.product_type.*:
     label:
       type: label
       label: 'Label'
+
+products.importer.plugin.*:
+  type: mapping
+  label: 'Plugin configuration'
+
+products.importer.plugin.json:
+  type: mapping
+  label: Plugin configuration for the Json importer plugin
+  mapping:
+    url:
+      type: uri
+      label: Uri

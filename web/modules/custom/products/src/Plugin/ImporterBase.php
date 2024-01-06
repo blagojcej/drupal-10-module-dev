@@ -2,19 +2,24 @@
 
 namespace Drupal\products\Plugin;
 
-use Drupal\Component\Plugin\Exception\PluginException;
-use Drupal\Component\Plugin\PluginBase;
-use Drupal\Core\Entity\EntityTypeManager;
-use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
-use Drupal\products\Entity\ImporterInterface;
 use GuzzleHttp\Client;
+use Drupal\Component\Plugin\PluginBase;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Entity\EntityTypeManager;
+use Drupal\products\Entity\ImporterInterface;
+use Drupal\Component\Plugin\Exception\PluginException;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 
 /**
  * Base class for Importer plugins.
  */
 abstract class ImporterBase extends PluginBase implements ImporterPluginInterface, ContainerFactoryPluginInterface
 {
+    use StringTranslationTrait;
+    use DependencySerializationTrait;
 
     /**
      * The entity type manager.
@@ -46,6 +51,7 @@ abstract class ImporterBase extends PluginBase implements ImporterPluginInterfac
         if (!$configuration['config'] instanceof ImporterInterface) {
             throw new PluginException('Wrong Importer configuration.');
         }
+        $this->setConfiguration($configuration);
     }
 
     /**
@@ -65,8 +71,56 @@ abstract class ImporterBase extends PluginBase implements ImporterPluginInterfac
     /**
      * {@inheritdoc}
      */
-    public function getConfig()
+    public function getImporterEntity()
     {
         return $this->configuration['config'];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function defaultConfiguration()
+    {
+        return [];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getConfiguration()
+    {
+        return $this->configuration;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setConfiguration(array $configuration)
+    {
+        $this->configuration = $configuration + $this->defaultConfiguration();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildConfigurationForm(array $form, FormStateInterface $form_state)
+    {
+        return [];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function validateConfigurationForm(array &$form, FormStateInterface $form_state)
+    {
+        // Do nothing by default.
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function submitConfigurationForm(array &$form, FormStateInterface $form_state)
+    {
+        // Do nothing by default.
     }
 }

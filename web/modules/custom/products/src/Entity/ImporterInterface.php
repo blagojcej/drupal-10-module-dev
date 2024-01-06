@@ -16,7 +16,23 @@ interface ImporterInterface extends ConfigEntityInterface
      * @return \Drupal\Core\Url
      *   The URL.
      */
-    public function getUrl();
+    // public function getUrl();
+
+    /**
+     * Returns the configuration specific to the chosen plugin.
+     *
+     * @return array
+     *   The plugin configuration.
+     */
+    public function getPluginConfiguration();
+
+    /**
+     * Sets the plugin configuration.
+     *
+     * @param array $configuration
+     *   The plugin configuration.
+     */
+    public function setPluginConfiguration(array $configuration);
 
     /**
      * Returns the Importer plugin ID to be used by this importer.

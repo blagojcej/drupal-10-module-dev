@@ -2,12 +2,14 @@
 
 namespace Drupal\products\Plugin;
 
+use Drupal\Core\Plugin\PluginFormInterface;
+use Drupal\Component\Plugin\ConfigurableInterface;
 use Drupal\Component\Plugin\PluginInspectionInterface;
 
 /**
  * Defines an interface for Importer plugins.
  */
-interface ImporterPluginInterface extends PluginInspectionInterface
+interface ImporterPluginInterface extends PluginInspectionInterface, PluginFormInterface, ConfigurableInterface
 {
 
     /**
@@ -24,5 +26,5 @@ interface ImporterPluginInterface extends PluginInspectionInterface
      * @return \Drupal\products\Entity\ImporterInterface
      *   The importer config.
      */
-    public function getConfig();
+    public function getImporterEntity();
 }

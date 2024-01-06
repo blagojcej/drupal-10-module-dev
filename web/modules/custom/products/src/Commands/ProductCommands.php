@@ -78,7 +78,7 @@ class ProductCommands extends DrushCommands
     protected function runPluginImport(ImporterPluginInterface $plugin)
     {
         $result = $plugin->import();
-        $message_values = ['@importer' => $plugin->getConfig()->label()];
+        $message_values = ['@importer' => $plugin->getImporterEntity()->label()];
         if ($result) {
             $this->logger()->notice(t('The "@importer" importer has been run.', $message_values));
             return;

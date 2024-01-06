@@ -59,7 +59,8 @@ class ImporterManager extends DefaultPluginManager
             return NULL;
         }
 
-        return $this->createInstance($config->getPluginId(), ['config' => $config]);
+        $configuration = ['config' => $config] + $config->getPluginConfiguration();
+        return $this->createInstance($config->getPluginId(), ['config' => $configuration]);
     }
 
     /**

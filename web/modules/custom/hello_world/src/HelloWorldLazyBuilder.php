@@ -2,13 +2,16 @@
 
 namespace Drupal\hello_world;
 
+use Drupal\Core\Url;
 use Drupal\Core\Security\TrustedCallbackInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Lazy builder for the Hello World salutation.
  */
 class HelloWorldLazyBuilder implements TrustedCallbackInterface
 {
+    use StringTranslationTrait;
 
     /**
      * The salutation service.
@@ -41,6 +44,26 @@ class HelloWorldLazyBuilder implements TrustedCallbackInterface
      */
     public function renderSalutation()
     {
-        return $this->salutation->getSalutationComponent();
+        // return $this->salutation->getSalutationComponent();
+
+        // After implementing Ajax
+        $build = [];
+
+        $build[] = [
+            '#theme' => 'container',
+            '#children' => [
+                '#markup' => $this->salutation->getSalutation(),
+            ]
+        ];
+
+        $url = Url::fromRoute('hello_world.hide_block');
+        $url->setOption('attributes', ['class' => 'use-ajax']);
+        $build[] = [
+            '#type' => 'link',
+            '#url' => $url,
+            '#title' => $this->t('Remove'),
+        ];
+
+        return $build;
     }
 }
