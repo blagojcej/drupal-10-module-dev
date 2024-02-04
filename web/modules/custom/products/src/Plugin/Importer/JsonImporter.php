@@ -2,6 +2,7 @@
 
 namespace Drupal\products\Plugin\Importer;
 
+use Drupal\Core\Batch\BatchBuilder;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\products\Plugin\ImporterBase;
 
@@ -64,10 +65,134 @@ class JsonImporter extends ImporterBase
         }
 
         $products = $data->products;
-        foreach ($products as $product) {
-            $this->persistProduct($product);
+        // foreach ($products as $product) {
+        //     $this->persistProduct($product);
+        // }
+
+        // After implementing Batch processing
+        $batch_builder = (new BatchBuilder())
+            ->setTitle($this->t('Importing products'))
+            ->setFinishCallback([$this, 'importProductsFinished']);
+
+        $batch_builder->addOperation([$this, 'clearMissing'], [$products]);
+        $batch_builder->addOperation([$this, 'importProducts'], [$products]);
+        batch_set($batch_builder->toArray());
+
+        if (PHP_SAPI == 'cli') {
+            drush_backend_batch_process();
         }
+
         return TRUE;
+    }
+
+    /**
+     * Removes products that no longer exist in the remote source.
+     *
+     * @param array $products
+     *   The products.
+     * @param object $context
+     *   The context.
+     */
+    public function clearMissing(array $products, object &$context)
+    {
+        if (!isset($context['results']['cleared'])) {
+            $context['results']['cleared'] = [];
+        }
+
+        if (!$products) {
+            return;
+        }
+
+        $ids = [];
+        foreach ($products as $product) {
+            $ids[] = $product->id;
+        }
+
+        $ids = $this->entityTypeManager->getStorage('product')->getQuery()
+            ->condition('remote_id', $ids, 'NOT IN')
+            ->accessCheck(FALSE)
+            ->execute();
+        if (!$ids) {
+            $context['results']['cleared'] = [];
+            return;
+        }
+
+        $entities = $this->entityTypeManager->getStorage('product')->loadMultiple($ids);
+
+        /** @var \Drupal\products\Entity\ProductInterface $entity */
+        foreach ($entities as $entity) {
+            $context['results']['cleared'][] = $entity->getName();
+        }
+        $context['message'] = $this->t('Removing @count products', ['@count' => count($entities)]);
+        $this->entityTypeManager->getStorage('product')->delete($entities);
+    }
+
+    /**
+     * Batch operation to import the products from the JSON file.
+     *
+     * @param array $products
+     *   The products.
+     * @param object $context
+     *   The context.
+     */
+    public function importProducts(array $products, object &$context)
+    {
+        if (!isset($context['results']['imported'])) {
+            $context['results']['imported'] = [];
+        }
+
+        if (!$products) {
+            return;
+        }
+
+        $sandbox = &$context['sandbox'];
+        if (!$sandbox) {
+            $sandbox['progress'] = 0;
+            $sandbox['max'] = count($products);
+            $sandbox['products'] = $products;
+        }
+
+        $slice = array_splice($sandbox['products'], 0, 3);
+        foreach ($slice as $product) {
+            $context['message'] = $this->t('Importing product @name', ['@name' => $product->name]);
+            $this->persistProduct($product);
+            $context['results']['imported'][] = $product->name;
+            $sandbox['progress']++;
+        }
+
+        $context['finished'] = $sandbox['progress'] / $sandbox['max'];
+    }
+
+    /**
+     * Callback for when the batch processing completes.
+     *
+     * @param bool $success
+     *   Whether the batch was successful.
+     * @param array $results
+     *   The batch results.
+     * @param array $operations
+     *   The batch operations.
+     */
+    public function importProductsFinished(bool $success, array $results, array $operations)
+    {
+        if (!$success) {
+            $this->messenger->addStatus($this->t('There was a problem with the batch'), 'error');
+            return;
+        }
+
+        $cleared = count($results['cleared']);
+        if ($cleared == 0) {
+            $this->messenger->addStatus($this->t('No products had to be deleted.'));
+        } else {
+            $this->messenger->addStatus($this->formatPlural($cleared, '1 product had to be deleted.', '@count products had to be deleted.'));
+        }
+
+        $imported = count($results['imported']);
+        if ($imported == 0) {
+            $this->messenger->addStatus($this->t('No products found to be imported.'));
+        } else {
+            $this->messenger->addStatus($this->formatPlural($imported, '1 product imported.', '@count products imported.'));
+        }
     }
 
     /**

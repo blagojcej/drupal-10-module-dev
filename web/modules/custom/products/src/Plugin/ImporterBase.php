@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Entity\EntityTypeManager;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\products\Entity\ImporterInterface;
 use Drupal\Component\Plugin\Exception\PluginException;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
@@ -36,12 +37,20 @@ abstract class ImporterBase extends PluginBase implements ImporterPluginInterfac
     protected $httpClient;
 
     /**
+     * The messenger.
+     *
+     * @var \Drupal\Core\Messenger\MessengerInterface
+     */
+    protected $messenger;
+
+    /**
      * {@inheritdoc}
      */
-    public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManager $entityTypeManager, Client $httpClient)
+    public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityTypeManager $entityTypeManager, Client $httpClient, MessengerInterface $messenger)
     {
         parent::__construct($configuration, $plugin_id, $plugin_definition);
         $this->entityTypeManager = $entityTypeManager;
+        $this->httpClient = $httpClient;
         $this->httpClient = $httpClient;
 
         if (!isset($configuration['config'])) {
@@ -52,6 +61,7 @@ abstract class ImporterBase extends PluginBase implements ImporterPluginInterfac
             throw new PluginException('Wrong Importer configuration.');
         }
         $this->setConfiguration($configuration);
+        $this->messenger = $messenger;
     }
 
     /**
@@ -64,7 +74,8 @@ abstract class ImporterBase extends PluginBase implements ImporterPluginInterfac
             $plugin_id,
             $plugin_definition,
             $container->get('entity_type.manager'),
-            $container->get('http_client')
+            $container->get('http_client'),
+            $container->get('messenger')
         );
     }
 
